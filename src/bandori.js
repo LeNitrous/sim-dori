@@ -9,14 +9,21 @@ var PLAYFIELD_LANE_WIDTH;
 var PLAYFIELD_LANE_HEIGHT;
 var PLAYFIELD_LANE_JUDGEMENT;
 
-var CHART_MIRROR = (getURLParameter("mirror") === "true") || false;
-var CHART_RHYTHM = (getURLParameter("rhythm") === "true") || true;
-var CHART_DIFF = getURLParameter("diff");
-var CHART_ID = getURLParameter("id");
+var PLAYER_BASE_X = 150;
+var PLAYER_BASE_Y = 810;
+var PLAYER_LENGTH = 625;
+var PLAYER_POS = 0;
+var PLAYER_FEVER_READY = 0;
+var PLAYER_FEVER_START = 0;
+var PLAYER_FEVER_LENGTH = 0;
 
-var MOUSE_X = 0;
-var MOUSE_Y = 0;
-var MOUSE_isDown = false;
+var BUTTONS = {};
+
+var CHART_MIRROR = (_getURLParameter("mirror") === "true") || false;
+var CHART_RHYTHM = (_getURLParameter("rhythm") === "true") || true;
+var CHART_TIME = _getURLParameter("time");
+var CHART_DIFF = _getURLParameter("diff");
+var CHART_ID = _getURLParameter("id");
 
 var approachTime = 1.5;
 var gridLevel = 1;
@@ -32,35 +39,15 @@ $(document).ready(function() {
     PLAYFIELD_LANE_HEIGHT = game.height;
     PLAYFIELD_LANE_JUDGEMENT = 840;
 
-    var check = game.addState("check");
-    check.load = () => {
-        if (CHART_DIFF && CHART_ID) {
-            CHART_DIFF = CHART_DIFF.toLowerCase();
-            CHART_ID = CHART_ID.toString().padStart(2, "0");
-            game.setState("load");
-        }
-    }
-
-    check.update = (dt) => {
-
-    }
-
-    check.draw = (ctx) => {
-        if (!CHART_DIFF || !CHART_ID) {
-            ctx.fillStyle = "#FFFFFF";
-            ctx.font = "bold 16px Arial";
-            ctx.fillText("Invalid URL Parameter.", game.width - 300, game.height - 50);
-            ctx.fill();
-        }
+    if (CHART_DIFF && CHART_ID) {
+        CHART_DIFF = CHART_DIFF.toLowerCase();
+        CHART_ID = CHART_ID.toString().padStart(2, "0");
     }
 
     var loading = game.addState("load");
     loading.load = () => {
         store.addQueue("assets/textures/live.png");
-        store.addQueue("assets/textures/diff_easy.png");
-        store.addQueue("assets/textures/diff_normal.png");
-        store.addQueue("assets/textures/diff_hard.png");
-        store.addQueue("assets/textures/diff_expert.png");
+        store.addQueue(`assets/textures/diff_${CHART_DIFF}.png`);
         store.addQueue("assets/textures/note_normal.png");
         store.addQueue("assets/textures/note_normal_alt.png");
         store.addQueue("assets/textures/note_skill.png");
@@ -78,10 +65,6 @@ $(document).ready(function() {
             $.getJSON(`https://api.bangdream.ga/v1/jp/music/${CHART_ID}`)
         ).done(function(chart, meta) {
             beatmap = new Beatmap(meta[0], chart[0]);
-
-            beat = (60000 / beatmap.bpm) / 1000;
-
-            document.title += `: ${beatmap.artist} - ${beatmap.title}`;
 
             beatmap.objects.forEach(note => {
                 if (note.type != "NOTE_LONG") {
@@ -115,6 +98,14 @@ $(document).ready(function() {
                     }
                 });
             }
+
+            if (CHART_TIME) {
+                beatmap.music.currentTime = _timeFormatToSeconds(CHART_TIME);
+                curTime = beatmap.music.currentTime;
+            }
+
+            beat = (60000 / beatmap.bpm) / 1000;
+            document.title += `: ${beatmap.artist} - ${beatmap.title}`;
 
             beatmap.music.addEventListener("canplaythrough", function() {
                 jacket = new Image(60, 60);
@@ -191,54 +182,10 @@ $(document).ready(function() {
         for (var i = 0; i < beatmap.objects.length; i++) {  
             var note = beatmap.objects[i];
             if (note.isVisible(curTime, approachTime) && note.type != "NOTE_LONG") {
-                var image = store.cache[note.texture];
-                var X = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * note.lane);
-                var Y = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (note.time - curTime) / approachTime);
-                ctx.drawImage(image, X, Y, PLAYFIELD_LANE_WIDTH, PLAYFIELD_LANE_WIDTH / 2);
+                Playfield.drawObjectNote(ctx, note);
             }
             else if (note.isVisible(curTime, approachTime) && note.type == "NOTE_LONG") {
-                for (var j = 0; j < note.children.length; j++) {
-                    var head = note.children[j];
-                    var tail = note.children[j + 1];
-                    var X = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * head.lane);
-                    var Y = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (head.time - curTime) / approachTime);
-                    if (tail) {
-                        var X2 = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * tail.lane);
-                        var Y2 = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (tail.time - curTime) / approachTime);
-                        if (head.time <= curTime) {
-                            if (tail.time >= curTime) {
-                                var image = store.cache.note_long_head;
-                                X = X + (X2 - X) * (curTime - head.time) / (tail.time - head.time);
-                                Y = PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4);
-                                ctx.fillStyle="#008000";
-                                ctx.globalAlpha = 0.8;
-                                ctx.beginPath();
-                                ctx.moveTo(X + 7, Y + (PLAYFIELD_LANE_WIDTH / 4));
-                                ctx.lineTo(X2 + 7, Y2 + (PLAYFIELD_LANE_WIDTH / 4));
-                                ctx.lineTo((X2 - 7) + PLAYFIELD_LANE_WIDTH, Y2 + (PLAYFIELD_LANE_WIDTH / 4));
-                                ctx.lineTo((X - 7) + PLAYFIELD_LANE_WIDTH, Y + (PLAYFIELD_LANE_WIDTH / 4));
-                                ctx.fill();
-                                ctx.globalAlpha = 1;
-                                ctx.drawImage(image, X, Y, PLAYFIELD_LANE_WIDTH, PLAYFIELD_LANE_WIDTH / 2);
-                            }
-                        }
-                        if (head.isVisible(curTime, approachTime)) {
-                            ctx.fillStyle="#008000";
-                            ctx.globalAlpha = 0.8;
-                            ctx.beginPath();
-                            ctx.moveTo(X + 7, Y + (PLAYFIELD_LANE_WIDTH / 4));
-                            ctx.lineTo(X2 + 7, Y2 + (PLAYFIELD_LANE_WIDTH / 4));
-                            ctx.lineTo((X2 - 7) + PLAYFIELD_LANE_WIDTH, Y2 + (PLAYFIELD_LANE_WIDTH / 4));
-                            ctx.lineTo((X - 7) + PLAYFIELD_LANE_WIDTH, Y + (PLAYFIELD_LANE_WIDTH / 4));
-                            ctx.fill();
-                            ctx.globalAlpha = 1;
-                        }
-                    }
-                    if (head.isVisible(curTime, approachTime)) {
-                        var image = store.cache[head.texture];
-                        ctx.drawImage(image, X, Y, PLAYFIELD_LANE_WIDTH, PLAYFIELD_LANE_WIDTH / 2);
-                    }
-                }
+                Playfield.drawObjectNoteLong(ctx, note);
             }
         }
         ctx.restore();
@@ -256,10 +203,15 @@ $(document).ready(function() {
         Playfield.drawUIMusicInfo(ctx);
         Playfield.drawUIMusicController(ctx);
     }
+
+    BUTTONS = {
+        playerSeek: new BoxModel(PLAYER_BASE_X, 790, PLAYER_LENGTH, 40),
+    }
 });
 
 $(document).keydown(function(e) {
     var key = e.keyCode;
+    var isCtrlCmdDown = false;
     if (beatmap) {
         var curTime = beatmap.music.currentTime.toFixed(3);
         var divisor = (beat / gridLevel).toFixed(3);
@@ -291,21 +243,21 @@ $(document).bind("mousewheel", function(e) {
     }
 });
 
-function _getMousePos(canvas, event) {
-    var rect = canvas.getBoundingClientRect();
-    return {
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top
-    };
-}
+$(document).bind("mousedown", function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    var mouseX = e.clientX - $("#canvas").offset().left;
+    var mouseY = e.clientY - $("#canvas").offset().top;
 
-function _playerFormatTime(time) {
-    var minutes, seconds, millis;
-    minutes = Math.floor(time / 60);
-    minutes = (minutes >= 10) ? minutes : "0" + minutes;
-    seconds = Math.floor(time % 60);
-    seconds = (seconds >= 10) ? seconds : "0" + seconds;
-    millis = time + '';
-    millis = millis.split(".").pop().slice(0, 3).padEnd(3, "0");
-    return `${minutes}:${seconds}:${millis}`;
-}
+    if (mouseX > 0 && mouseY > 0 || mouseX < $("#canvas").offset().left && mouseY < $("#canvas").offset().top) {
+
+    }
+});
+
+$(document).on("copy", function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    var clipboard = e.originalEvent.clipboardData;
+    clipboard.setData("text/plain", _playerFormatTime(beatmap.music.currentTime));
+});

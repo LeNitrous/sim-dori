@@ -161,3 +161,17 @@ function _mapMetaDifficulty(meta) {
     });
     return difficulty;
 }
+
+class BoxModel {
+    constructor(x, y, w, h) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+    }
+
+    isHit(x, y) {
+        return x > this.x && x < this.x + this.width &&
+            y > this.y && y < this.y + this.height;
+    }
+}

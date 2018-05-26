@@ -49,14 +49,6 @@ Playfield.drawUIMusicInfo = (ctx) => {
 }
 
 Playfield.drawUIMusicController = (ctx) => {
-    var PLAYER_BASE_X = 150;
-    var PLAYER_BASE_Y = 810;
-    var PLAYER_LENGTH = 625;
-    var PLAYER_POS = 0;
-    var PLAYER_FEVER_READY = 0;
-    var PLAYER_FEVER_START = 0;
-    var PLAYER_FEVER_LENGTH = 0;
-
     ctx.globalAlpha = 0.75;
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 790, (game.width / 2) - 20, 40);
@@ -138,10 +130,54 @@ Playfield.drawObjectPlayArea = (ctx) => {
     ctx.lineWidth = 1;
 }
 
-Playfield.drawObjectNote = (ctx) => {
-
+Playfield.drawObjectNote = (ctx, note) => {
+    var image = store.cache[note.texture];
+    var X = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * note.lane);
+    var Y = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (note.time - curTime) / approachTime);
+    ctx.drawImage(image, X, Y, PLAYFIELD_LANE_WIDTH, PLAYFIELD_LANE_WIDTH / 2);
 }
 
-Playfield.drawObjectNoteLong = (ctx) => {
-
+Playfield.drawObjectNoteLong = (ctx, note) => {
+    for (var j = 0; j < note.children.length; j++) {
+        var head = note.children[j];
+        var tail = note.children[j + 1];
+        var X = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * head.lane);
+        var Y = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (head.time - curTime) / approachTime);
+        if (tail) {
+            var X2 = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * tail.lane);
+            var Y2 = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (tail.time - curTime) / approachTime);
+            if (head.time <= curTime) {
+                if (tail.time >= curTime) {
+                    var image = store.cache.note_long_head;
+                    X = X + (X2 - X) * (curTime - head.time) / (tail.time - head.time);
+                    Y = PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4);
+                    ctx.fillStyle="#008000";
+                    ctx.globalAlpha = 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(X + 7, Y + (PLAYFIELD_LANE_WIDTH / 4));
+                    ctx.lineTo(X2 + 7, Y2 + (PLAYFIELD_LANE_WIDTH / 4));
+                    ctx.lineTo((X2 - 7) + PLAYFIELD_LANE_WIDTH, Y2 + (PLAYFIELD_LANE_WIDTH / 4));
+                    ctx.lineTo((X - 7) + PLAYFIELD_LANE_WIDTH, Y + (PLAYFIELD_LANE_WIDTH / 4));
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    ctx.drawImage(image, X, Y, PLAYFIELD_LANE_WIDTH, PLAYFIELD_LANE_WIDTH / 2);
+                }
+            }
+            if (head.isVisible(curTime, approachTime)) {
+                ctx.fillStyle="#008000";
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.moveTo(X + 7, Y + (PLAYFIELD_LANE_WIDTH / 4));
+                ctx.lineTo(X2 + 7, Y2 + (PLAYFIELD_LANE_WIDTH / 4));
+                ctx.lineTo((X2 - 7) + PLAYFIELD_LANE_WIDTH, Y2 + (PLAYFIELD_LANE_WIDTH / 4));
+                ctx.lineTo((X - 7) + PLAYFIELD_LANE_WIDTH, Y + (PLAYFIELD_LANE_WIDTH / 4));
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+        if (head.isVisible(curTime, approachTime)) {
+            var image = store.cache[head.texture];
+            ctx.drawImage(image, X, Y, PLAYFIELD_LANE_WIDTH, PLAYFIELD_LANE_WIDTH / 2);
+        }
+    }
 }
