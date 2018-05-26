@@ -81,6 +81,8 @@ $(document).ready(function() {
 
             beat = (60000 / beatmap.bpm) / 1000;
 
+            document.title += `: ${beatmap.artist} - ${beatmap.title}`;
+
             beatmap.objects.forEach(note => {
                 if (note.type != "NOTE_LONG") {
                     maxCombo++;
