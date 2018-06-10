@@ -21,6 +21,7 @@ var BUTTONS = {};
 
 var CHART_MIRROR = (_getURLParameter("mirror") === "true") || false;
 var CHART_RHYTHM = (_getURLParameter("rhythm") === "true") || true;
+var CHART_CUSTOM = _getURLParameter("custom");
 var CHART_TIME = _getURLParameter("time");
 var CHART_DIFF = _getURLParameter("diff");
 var CHART_ID = _getURLParameter("id");
@@ -60,61 +61,36 @@ $(document).ready(function() {
         store.addQueue("assets/sounds/note_hold.wav");
         store.downloadAll();
 
-        $.when(
-            $.getJSON(`https://api.bangdream.ga/v1/jp/music/chart/${CHART_ID}/${CHART_DIFF}`),
-            $.getJSON(`https://api.bangdream.ga/v1/jp/music/${CHART_ID}`)
-        ).done(function(chart, meta) {
-            beatmap = new Beatmap(meta[0], chart[0]);
+        if (!CHART_CUSTOM && !CHART_ID && !_CHART_DIFF) {
+            $.when(
+                $.getJSON(`https://api.bangdream.ga/v1/jp/music/chart/${CHART_ID}/${CHART_DIFF}`),
+                $.getJSON(`https://api.bangdream.ga/v1/jp/music/${CHART_ID}`)
+            ).done(function(chart, meta) {
+                beatmap = new Beatmap(meta[0], chart[0]);
 
-            beatmap.objects.forEach(note => {
-                if (note.type != "NOTE_LONG") {
-                    maxCombo++;
-                }
-                else {
-                    note.children.forEach(child => {
-                        maxCombo++;
-                    });
-                }
-            });
-            
-
-            if (!CHART_RHYTHM) {
-                beatmap.objects.forEach(note => {
-                    if (note.type == "NOTE_SINGLE") {
-                        note.texture = "note_normal";
-                    }
-                });
-            }
-
-            if (CHART_MIRROR) {
                 beatmap.objects.forEach(note => {
                     if (note.type != "NOTE_LONG") {
-                        note.lane = Math.abs(6 - note.lane);
+                        maxCombo++;
                     }
                     else {
                         note.children.forEach(child => {
-                            child.lane = Math.abs(6 - child.lane);
+                            maxCombo++;
                         });
                     }
                 });
-            }
 
-            if (CHART_TIME) {
-                beatmap.music.currentTime = _timeFormatToSeconds(CHART_TIME);
-                curTime = beatmap.music.currentTime;
-            }
-
-            beat = (60000 / beatmap.bpm) / 1000;
-            document.title += `: ${beatmap.artist} - ${beatmap.title}`;
-
-            beatmap.music.addEventListener("canplaythrough", function() {
-                jacket = new Image(60, 60);
-                jacket.onload = function() {
-                    game.setState("live");
-                }
-            jacket.src = beatmap.jacket;
-            }, false);
-        });
+                beatmap.music.addEventListener("canplaythrough", function() {
+                    jacket = new Image(60, 60);
+                    jacket.onload = function() {
+                        game.setState("live");
+                    }
+                jacket.src = beatmap.jacket;
+                }, false);
+            });
+        }
+        else if (CHART_CUSTOM) {
+            console.log(CHART_CUSTOM);
+        }
     }
 
     loading.update = (dt) => {
@@ -130,7 +106,34 @@ $(document).ready(function() {
 
     var live = game.addState("live");
     live.load = () => {
+        if (!CHART_RHYTHM) {
+            beatmap.objects.forEach(note => {
+                if (note.type == "NOTE_SINGLE") {
+                    note.texture = "note_normal";
+                }
+            });
+        }
 
+        if (CHART_MIRROR) {
+            beatmap.objects.forEach(note => {
+                if (note.type != "NOTE_LONG") {
+                    note.lane = Math.abs(6 - note.lane);
+                }
+                else {
+                    note.children.forEach(child => {
+                        child.lane = Math.abs(6 - child.lane);
+                    });
+                }
+            });
+        }
+
+        if (CHART_TIME) {
+            beatmap.music.currentTime = _timeFormatToSeconds(CHART_TIME);
+            curTime = beatmap.music.currentTime;
+        }
+
+        beat = (60000 / beatmap.bpm) / 1000;
+        document.title += `: ${beatmap.artist} - ${beatmap.title}`;
     }
 
     live.update = (dt) => {
