@@ -130,3 +130,9 @@ html, body {
 .songSelect.diff.expert:hover {
     background-color: #ff2a2e;
 }
+
+#download {
+    font-size: 20pt;
+    color: lightgray;
+    cursor: pointer;
+}

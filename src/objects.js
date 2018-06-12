@@ -31,6 +31,7 @@ class NoteLong {
 
         var head = objects.shift();
         var tail = objects.pop();
+
         switch(head.type) {
             case "NOTE_SKILL": {
                 this.children.push(new NoteSkill(head.lane, head.time));

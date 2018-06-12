@@ -164,6 +164,11 @@ function generate(data) {
                                         <div class="col-xs">
                                             <div class="songSelect title">${music.title}</div>
                                         </div>
+                                        <div class="col-xs end-xs">
+                                            <a href="https://res.bangdream.ga/assets/sound/${music.bgmId}.mp3" download="${music.title} (Game Size).mp3">
+                                                <i class="fa fa-download" id="download"></i>
+                                            </a>
+                                        </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-xs">

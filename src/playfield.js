@@ -144,7 +144,7 @@ Playfield.drawObjectNoteLong = (ctx, note) => {
         var X = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * (head.lane - 1));
         var Y = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (head.time - curTime) / approachTime);
         if (tail) {
-            var X2 = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * tail.lane);
+            var X2 = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * (tail.lane - 1));
             var Y2 = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (tail.time - curTime) / approachTime);
             if (head.time <= curTime) {
                 if (tail.time >= curTime) {
