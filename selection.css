@@ -1,4 +1,4 @@
-.songSelect {
+html, body {
     font-family: 'Roboto', sans-serif;
     -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
@@ -72,6 +72,9 @@
     font-size: 24px;
     vertical-align: top;
     line-height: 1.2em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    float: left;
 }
 
 .songSelect.artist {
@@ -82,7 +85,7 @@
 }
 
 .songSelect.desc {
-
+    color: gray;
 }
 
 .songSelect.tag {

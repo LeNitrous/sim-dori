@@ -61,7 +61,33 @@ $(document).ready(function() {
         store.addQueue("assets/sounds/note_hold.wav");
         store.downloadAll();
 
-        if (!CHART_CUSTOM && !CHART_ID && !_CHART_DIFF) {
+        $.when(
+            $.getJSON(`https://api.bangdream.ga/v1/jp/music/chart/${CHART_ID}/${CHART_DIFF}`),
+            $.getJSON(`https://api.bangdream.ga/v1/jp/music/${CHART_ID}`)
+        ).done(function(chart, meta) {
+            beatmap = new Beatmap(meta[0], chart[0]);
+
+            beatmap.objects.forEach(note => {
+                if (note.type != "NOTE_LONG") {
+                    maxCombo++;
+                }
+                else {
+                    note.children.forEach(child => {
+                        maxCombo++;
+                    });
+                }
+            });
+
+            beatmap.music.addEventListener("canplaythrough", function() {
+                beatmap.jacket.onload = function() {
+                    
+                }
+                game.setState("live");
+            }, false);
+        });
+
+        /*
+        if (!CHART_ID && !CHART_DIFF) {
             $.when(
                 $.getJSON(`https://api.bangdream.ga/v1/jp/music/chart/${CHART_ID}/${CHART_DIFF}`),
                 $.getJSON(`https://api.bangdream.ga/v1/jp/music/${CHART_ID}`)
@@ -82,15 +108,13 @@ $(document).ready(function() {
                 beatmap.music.addEventListener("canplaythrough", function() {
                     jacket = new Image(60, 60);
                     jacket.onload = function() {
-                        game.setState("live");
+                        //game.setState("live");
                     }
                 jacket.src = beatmap.jacket;
                 }, false);
             });
         }
-        else if (CHART_CUSTOM) {
-            console.log(CHART_CUSTOM);
-        }
+        */
     }
 
     loading.update = (dt) => {
@@ -171,6 +195,8 @@ $(document).ready(function() {
             Events.onSeekForward();
         }
         lastTime = curTime;
+        // Multi BPM
+        beat = (60000 / beatmap.getCurrentBPM(curTime)) / 1000;
     }
 
     live.draw = (ctx) => {
@@ -204,11 +230,7 @@ $(document).ready(function() {
         ctx.fillText(`Spacebar: Pause/Play`, 80, 520);
 
         Playfield.drawUIMusicInfo(ctx);
-        Playfield.drawUIMusicController(ctx);
-    }
-
-    BUTTONS = {
-        playerSeek: new BoxModel(PLAYER_BASE_X, 790, PLAYER_LENGTH, 40),
+        //Playfield.drawUIMusicController(ctx);
     }
 });
 

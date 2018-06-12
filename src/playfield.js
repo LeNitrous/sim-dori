@@ -32,7 +32,7 @@ Playfield.drawUIMusicInfo = (ctx) => {
     ctx.beginPath();
     ctx.rect(58, 58, 153, 153);
     ctx.stroke();
-    ctx.drawImage(jacket, 60, 60, 150, 150);
+    ctx.drawImage(beatmap.jacket, 60, 60, 150, 150);
     ctx.moveTo(135, 135);
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -132,7 +132,7 @@ Playfield.drawObjectPlayArea = (ctx) => {
 
 Playfield.drawObjectNote = (ctx, note) => {
     var image = store.cache[note.texture];
-    var X = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * note.lane);
+    var X = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * (note.lane - 1));
     var Y = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (note.time - curTime) / approachTime);
     ctx.drawImage(image, X, Y, PLAYFIELD_LANE_WIDTH, PLAYFIELD_LANE_WIDTH / 2);
 }
@@ -141,7 +141,7 @@ Playfield.drawObjectNoteLong = (ctx, note) => {
     for (var j = 0; j < note.children.length; j++) {
         var head = note.children[j];
         var tail = note.children[j + 1];
-        var X = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * head.lane);
+        var X = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * (head.lane - 1));
         var Y = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (head.time - curTime) / approachTime);
         if (tail) {
             var X2 = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * tail.lane);

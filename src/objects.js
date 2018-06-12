@@ -1,17 +1,13 @@
 class Note {
-    constructor(lane, time, offBeat) {
+    constructor(lane, time, beat) {
         this.lane = lane;
         this.time = time;
+        this.beat = beat;
         this.type = "NOTE_SINGLE";
         this.isHit = false;
         this.hitSound = store.cache.note_hit.cloneNode(false);
 
-        if (!offBeat) {
-            this.texture = "note_normal";
-        }
-        else {
-            this.texture = "note_normal_alt";
-        }
+        this.texture = "note_normal";
 
         this.hitSound.volume = 0.25;
     }
@@ -76,24 +72,24 @@ class NoteLong {
 }
 
 class NoteLongHead extends Note {
-    constructor(lane, time) {
-        super(lane, time);
+    constructor(lane, time, beat) {
+        super(lane, time, beat);
         this.type = "NOTE_LONG_HEAD";
         this.texture = "note_long_head";
     }
 }
 
 class NoteNode extends Note {
-    constructor(lane, time) {
-        super(lane, time);
+    constructor(lane, time, beat) {
+        super(lane, time, beat);
         this.type = "NOTE_LONG_NODE";
         this.texture = "note_long_mid";
     }
 }
 
 class NoteFlick extends Note {
-    constructor(lane, time) {
-        super(lane, time);
+    constructor(lane, time, beat) {
+        super(lane, time, beat);
         this.type = "NOTE_FLICK";
         this.texture = "note_flick";
         this.hitSound = store.cache.note_swipe.cloneNode(false);
@@ -101,18 +97,20 @@ class NoteFlick extends Note {
 }
 
 class NoteSkill extends Note {
-    constructor(lane, time) {
-        super(lane, time);
+    constructor(lane, time, beat) {
+        super(lane, time, beat);
         this.type = "NOTE_SKILL";
         this.texture = "note_skill";
     }
 }
 
-class NoteAlt extends Note {
-    constructor(lane, time) {
-        super(lane, time);
-        this.type = "NOTE_SINGLE";
-        this.texture = "note_normal_alt";
+class TimingPoint {
+    constructor(type, beat, time, value) {
+        this.time = time;
+        this.beat = beat;
+        this.type = type;
+        if (value)
+            this.value = value;
     }
 }
 
@@ -120,7 +118,8 @@ class Beatmap {
     constructor(meta, chart) {
         this.id = meta.musicId,
 
-        this.jacket = `https://res.bangdream.ga/assets/musicjacket/` + meta.jacketImage + '_jacket.png';
+        this.jacket = new Image(400, 400);
+        this.jacket.src = `https://res.bangdream.ga/assets/musicjacket/` + meta.jacketImage + '_jacket.png';
         this.music = new Audio(`https://res.bangdream.ga/assets/sound/` + meta.bgmId + '.mp3');
 
         this.description = meta.description,
@@ -130,20 +129,19 @@ class Beatmap {
         this.artist = meta.bandName,
         this.title = meta.title,
         this.tag = meta.tag,
+        this.maxCombo = chart.metadata.combo,
 
         this.difficulty = _mapMetaDifficulty(meta.difficulty);
 
-        this.bpm = chart.bpm;
-        this.fever = {
-            ready: chart.fever.ready.timing,
-            start: chart.fever.start.timing,
-            end: chart.fever.end.timing
-        }
-        this.objects = parseData(chart.notes);
+        var parsed = _parseBeatmap(chart);
+
+        this.timingPoints = parsed[0];
+        this.objects = parsed[1];
     }
 
-    isFever(curTime) {
-        return (curTime >= this.fever.start && curTime <= this.fever.end);
+    getCurrentBPM(curTime) {
+        var bpmTimes = this.timingPoints.filter(point => point.type === "BPM");
+        return bpmTimes.filter(point => curTime >= point.time).pop().value;
     }
 
     toString() {

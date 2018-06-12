@@ -1,121 +1,75 @@
-var column = {
-    "SC": 0,
-    1: 1,
-    2: 2,
-    3: 3,
-    4: 4,
-    5: 5,
-    6: 6
-};
+function _parseBeatmap(data) {
+    var notes = [];
+    var timing = [];
 
-function parseData(data) {
-    var chart = [];
-    data.shift();
-    data.forEach((note, index) => {
-        switch(note.type) {
-            case undefined:
-            case "Single": {
-                var offBeat = Number(note.beat.toString().split(".")[1]);
-                offBeat = (!offBeat || offBeat == 5);
-                chart.push(new Note(column[note.column], note.timing, !offBeat));
-                break;
-            }
-            case "FeverSingle": {
-                chart.push(new Note(column[note.column], note.timing));
-                break;
-            }
-            case "Skill": {
-                if (note.endTiming) {
-                    chart.push(new NoteLong([
-                        {lane: column[note.column], time: note.timing, type: "NOTE_SKILL"},
-                        {lane: column[note.column], time: note.endTiming, type: "NOTE_SINGLE"},
-                    ]));
+    timing.push(new TimingPoint("BPM", 0, 0, data.metadata.bpm));
+
+    var chart = data.objects;
+
+    chart.forEach((object, index) => {
+        if (object.type === "Object") {
+            object.index = index;
+            if (object.property === "Single") {
+                switch(object.effect) {
+                    case "Single":
+                    case "FeverSingle": {
+                        notes.push(new Note(object.lane, object.timing, object.beat));
+                        break;
+                    }
+                    case "Flick":
+                    case "FlickSingle": {
+                        notes.push(new NoteFlick(object.lane, object.timing, object.beat));
+                        break;
+                    }
+                    case "Skill": {
+                        notes.push(new NoteSkill(object.lane, object.timing, object.beat));
+                        break;
+                    }
                 }
-                else {
-                    chart.push(new NoteSkill(column[note.column], note.timing));
+            }
+            else if (object.property === "Slide") {
+                switch(object.effect) {
+                    case "SlideStart_A":
+                    case "Slide_A": {
+                        // TODO: Slide Group A
+                        break;
+                    }
+                    case "SlideStart_B":
+                    case "Slide_B": {
+                        // TODO: Slide Group B
+                        break;
+                    }
                 }
-                break;
             }
-            case "Flick": {
-                chart.push(new NoteFlick(column[note.column], note.timing));
-                break;
+            else {
+                // TODO: Long Notes
             }
-            case "FeverFlick": {
-                chart.push(new NoteFlick(column[note.column], note.timing));
-                break;
-            }
-            case "Long": {
-                chart.push(new NoteLong([
-                    {lane: column[note.column], time: note.timing, type: "NOTE_SINGLE"},
-                    {lane: column[note.column], time: note.endTiming, type: "NOTE_SINGLE"},
-                ]));
-                break;
-            }
-            case "Slide_Start_A":
-            case "Slide_A": {
-                var body = getSlide(data, note.index, "A");
-                var bodyIndex = body.map(part => part.index);
-                data = data.filter(note => !bodyIndex.includes(note.index));
-                if (body.length > 0)
-                    chart.push(buildSlide(body, "A"));
-                break;
-            }
-            case "Slide_Start_B":
-            case "Slide_B": {
-                var body = getSlide(data, note.index, "B");
-                var bodyIndex = body.map(part => part.index);
-                data = data.filter(note => !bodyIndex.includes(note.index));
-                if (body.length > 0)
-                    chart.push(buildSlide(body, "B"));
-                break;
+        }
+        else if (object.type === "System") {
+            switch(object.effect) {
+                case "BPMChange": {
+                    timing.push(new TimingPoint("BPM", object.beat, object.timing, object.value));
+                    break;
+                }
+                case "CmdFeverReady": {
+                    timing.push(new TimingPoint("FEVER_READY", object.beat, object.timing));
+                    break;
+                }
+                case "CmdFeverStart": {
+                    timing.push(new TimingPoint("FEVER_START", object.beat, object.timing));
+                    break;
+                }
+                case "CmdFeverCheckpoint": {
+                    timing.push(new TimingPoint("FEVER_POINT", object.beat, object.timing));
+                    break;
+                }
+                case "CmdFeverEnd": {
+                    timing.push(new TimingPoint("FEVER_END", object.beat, object.timing));
+                    break;
+                }
             }
         }
     });
-    return chart;
-}
 
-function getSlide(data, startIndex, group) {
-    var nodes = [];
-    for (var index = 0; index < data.length; index++) {
-        var note = data[index];
-        if (note.index >= startIndex) {
-            if (note.type == "Slide_Start_" + group)
-                nodes.push(note);
-            if (note.type == "Slide_Start_Skill_" + group)
-                nodes.push(note);
-            if (note.type == "Slide_" + group)
-                nodes.push(note);
-            if (note.type == "Slide_End_" + group) {
-                nodes.push(note);
-                break;
-            }  
-            if (note.type == "Slide_End_Flick_" + group) {
-                nodes.push(note);
-                break;
-            }
-        }
-    }
-    return nodes;
-}
-
-function buildSlide(data, group) {
-    var nodes = [];
-    for (var index = 0; index < data.length; index++) {
-        var note = data[index];
-        if (note.type == "Slide_Start_" + group)
-        nodes.push({lane: column[note.column], time: note.timing, type: "NOTE_SINGLE"});
-        if (note.type == "Slide_Start_Skill_" + group)
-            nodes.push({lane: column[note.column], time: note.timing, type: "NOTE_SKILL"});
-        if (note.type == "Slide_" + group)
-            nodes.push({lane: column[note.column], time: note.timing});
-        if (note.type == "Slide_End_" + group) {
-            nodes.push({lane: column[note.column], time: note.timing, type: "NOTE_SINGLE"});
-            break;
-        }  
-        if (note.type == "Slide_End_Flick_" + group) {
-            nodes.push({lane: column[note.column], time: note.timing, type: "NOTE_FLICK"});
-            break;
-        }
-    }
-    return new NoteLong(nodes);
+    return [timing, notes];
 }
