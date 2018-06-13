@@ -1,5 +1,7 @@
 const store = new AssetStore();
 
+var controls;
+
 var beatmap, game, beat;
 var curTime, lastTime;
 var offset = 0;
@@ -34,6 +36,12 @@ var maxCombo = 0;
 
 $(document).ready(function() {
     game = new Game();
+    controls = new Hammer(document.getElementById("canvas"));
+    controls.get("pan").set({ direction: Hammer.DIRECTION_ALL });
+    controls.get("pinch").set({ enable: true });
+
+    controls.add(new Hammer.Tap({ event: "doubletap", taps: 2 }));
+    controls.get("doubletap").recognizeWith("tap");
 
     PLAYFIELD_LANE_WIDTH = 45;
     PLAYFIELD_LANE_HEIGHT = game.height;
@@ -212,22 +220,27 @@ $(document).ready(function() {
             }
         }
         ctx.restore();
-
-        // UI Debug
-        /*
-        ctx.fillStyle = "#FFFFFF";
-        ctx.font = "bold 16px Arial";
-        ctx.fillText(`Controls:`, 60, 420);
-        ctx.fillText(`Mouse Wheel Up: Increase Note Speed`, 80, 440);
-        ctx.fillText(`Mouse Wheel Down: Decrease Note Speed`, 80, 460);
-        ctx.fillText(`Left Arrow Key: Seek Back`, 80, 480);
-        ctx.fillText(`Right Arrow Key: Seek Forward`, 80, 500);
-        ctx.fillText(`Spacebar: Pause/Play`, 80, 520);
-
-        Playfield.drawUIMusicInfo(ctx);
-        Playfield.drawUIMusicController(ctx);
-        */
     }
+
+    controls.on("panup pandown pinchin pinchout doubletap", function(e) {
+        if (e.type === "panup") {
+            beatmap.music.currentTime -= 0.1;
+            curTime -= 0.1;
+        }
+        else if (e.type === "pandown") {
+            beatmap.music.currentTime += 0.1;
+            curTime += 0.1;
+        }
+        else if (e.type === "pinchin") {
+            approachTime += 0.1;
+        }
+        else if (e.type === "pinchout") {
+            approachTime -= 0.1;
+        }
+        else if (e.type === "doubletap") {
+            playerPlayPause();
+        }
+    });
 });
 
 $(document).keydown(function(e) {
@@ -253,22 +266,14 @@ $(document).keydown(function(e) {
 });
 
 $(document).bind("mousewheel", function(e) {
+    e.preventDefault();
     if (e.originalEvent.wheelDelta / 120 > 0) {
-        approachTime -= 0.1;
+        beatmap.music.currentTime += 0.1;
+        curTime += 0.1;
     }
     else {
-        approachTime += 0.1;
-    }
-});
-
-$(document).bind("mousedown", function(e) {
-    e.stopPropagation();
-    e.preventDefault();
-    var mouseX = e.clientX - $("#canvas").offset().left;
-    var mouseY = e.clientY - $("#canvas").offset().top;
-
-    if (mouseX > 0 && mouseY > 0 || mouseX < $("#canvas").offset().left && mouseY < $("#canvas").offset().top) {
-
+        beatmap.music.currentTime -= 0.1;
+        curTime -= 0.1;
     }
 });
 
