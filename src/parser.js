@@ -42,7 +42,7 @@ function _parseBeatmap(data) {
                     case "Slide_A": {
                         if (!inSlide.A)
                             inSlide.A = true;
-                        var type = (object.type === "Skill") ? "NOTE_SKILL" : "NOTE_SINGLE";
+                        var type = (object.effect === "Skill") ? "NOTE_SKILL" : "NOTE_SINGLE";
                         slides.A.push({lane: object.lane, time: object.timing, type: type, beat: object.beat});
                         break;
                     }
@@ -50,7 +50,7 @@ function _parseBeatmap(data) {
                     case "Slide_B": {
                         if (!inSlide.B)
                             inSlide.B = true;
-                        var type = (object.type === "Skill") ? "NOTE_SKILL" : "NOTE_SINGLE";
+                        var type = (object.effect === "Skill") ? "NOTE_SKILL" : "NOTE_SINGLE";
                         slides.B.push({lane: object.lane, time: object.timing, type: type, beat: object.beat});
                         break;
                     }
@@ -97,13 +97,13 @@ function _parseBeatmap(data) {
                 var tailObject, head, tail;
                 for (var i = index; i < chart.length; i++) {
                     tailObject = chart[i];
-                    if (tail.property === "LongEnd" && tail.lane === object.lane)
+                    if (tailObject.property === "LongEnd" && tailObject.lane === object.lane)
                         break;
                 }
                 head = {lane: headObject.lane, time: headObject.timing, beat: headObject.beat};
                 tail = {lane: tailObject.lane, time: tailObject.timing, beat: tailObject.beat};
-                head.type = (headObject.type === "Skill") ? "NOTE_SKILL" : "NOTE_SINGLE";
-                tail.type = (tailObject.type === "Flick") ? "NOTE_FLICK" : "NOTE_SINGLE";
+                head.type = (headObject.effect === "Skill") ? "NOTE_SKILL" : "NOTE_SINGLE";
+                tail.type = (tailObject.effect === "Flick") ? "NOTE_FLICK" : "NOTE_SINGLE";
                 notes.push(new NoteLong([head, tail]));
             }
         }
