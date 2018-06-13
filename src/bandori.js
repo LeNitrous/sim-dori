@@ -1,7 +1,8 @@
 const store = new AssetStore();
 
 var beatmap, game, beat;
-var curTime, lastTime, jacket;
+var curTime, lastTime;
+var offset = 0;
 
 var PLAYFIELD_BASE_X;
 var PLAYFIELD_BASE_Y;
@@ -77,9 +78,6 @@ $(document).ready(function() {
             });
 
             beatmap.music.addEventListener("canplaythrough", function() {
-                beatmap.jacket.onload = function() {
-                    
-                }
                 game.setState("live");
             }, false);
         });
@@ -154,12 +152,11 @@ $(document).ready(function() {
             curTime = beatmap.music.currentTime;
         }
 
-        beat = (60000 / beatmap.bpm) / 1000;
         document.title += `: ${beatmap.artist} - ${beatmap.title} [${CHART_DIFF}]`;
     }
 
     live.update = (dt) => {
-        curTime = beatmap.music.currentTime;
+        curTime = offset + beatmap.music.currentTime;
         if (!beatmap.music.paused) {
             // Player
             $(".player.time").text(_playerFormatTime(curTime));
@@ -197,7 +194,7 @@ $(document).ready(function() {
         }
         lastTime = curTime;
         // Multi BPM
-        beat = (60000 / beatmap.getCurrentBPM(curTime)) / 1000;       
+        beat = (60000 / beatmap.getTimingPoint(curTime).value) / 1000;       
     }
 
     live.draw = (ctx) => {

@@ -142,9 +142,9 @@ class Beatmap {
         this.objects = parsed[1];
     }
 
-    getCurrentBPM(curTime) {
-        var bpmTimes = this.timingPoints.filter(point => point.type === "BPM");
-        return bpmTimes.filter(point => curTime >= point.time).pop().value;
+    getTimingPoint(curTime) {
+        return this.timingPoints.filter(point => point.type === "BPM")
+            .filter(point => curTime >= point.time).pop();
     }
 
     toString() {

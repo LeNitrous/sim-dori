@@ -103,7 +103,6 @@ Playfield.drawObjectPlayArea = (ctx) => {
     // Playfield Crochet
     for (var i = 0; i * (beat / gridLevel) < beatmap.music.duration; i++) {
         var bar = i * (beat / gridLevel);
-        var divisor = bar / gridLevel;
         var Y = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (bar - curTime) / approachTime);
         Y += PLAYFIELD_LANE_WIDTH / 4;
         if (!(i % (4 * gridLevel))) {
@@ -132,6 +131,9 @@ Playfield.drawObjectPlayArea = (ctx) => {
 
 Playfield.drawObjectNote = (ctx, note) => {
     var image = store.cache[note.texture];
+    var divisor = note.beat.toString().split(".")[1];
+    if (!(!divisor || divisor == "5") && note.type == "NOTE_SINGLE" && CHART_RHYTHM)
+        image = store.cache["note_normal_alt"];
     var X = PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * (note.lane - 1));
     var Y = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (note.time - curTime) / approachTime);
     ctx.drawImage(image, X, Y, PLAYFIELD_LANE_WIDTH, PLAYFIELD_LANE_WIDTH / 2);
