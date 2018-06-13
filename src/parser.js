@@ -93,16 +93,18 @@ function _parseBeatmap(data) {
                 }
             }
             else if (object.property === "LongStart") {
-                var tail;
+                var headObject = object;
+                var tailObject, head, tail;
                 for (var i = index; i < chart.length; i++) {
-                    tail = chart[i];
+                    tailObject = chart[i];
                     if (tail.property === "LongEnd" && tail.lane === object.lane)
                         break;
                 }
-                notes.push(new NoteLong([
-                    {lane: object.lane, time: object.timing, type: "NOTE_SINGLE", beat: object.beat},
-                    {lane: tail.lane, time: tail.timing, type: "NOTE_SINGLE", beat: tail.beat}
-                ]));
+                head = {lane: headObject.lane, time: headObject.timing, beat: headObject.beat};
+                tail = {lane: tailObject.lane, time: tailObject.timing, beat: tailObject.beat};
+                head.type = (headObject.type === "Skill") ? "NOTE_SKILL" : "NOTE_SINGLE";
+                tail.type = (tailObject.type === "Flick") ? "NOTE_FLICK" : "NOTE_SINGLE";
+                notes.push(new NoteLong([head, tail]));
             }
         }
         else if (object.type === "System") {
