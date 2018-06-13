@@ -34,34 +34,36 @@ class NoteLong {
 
         switch(head.type) {
             case "NOTE_SKILL": {
-                this.children.push(new NoteSkill(head.lane, head.time));
+                this.children.push(new NoteSkill(head.lane, head.time, head.beat));
                 break;
             }
             default: {
-                this.children.push(new NoteLongHead(head.lane, head.time));
+                this.children.push(new NoteLongHead(head.lane, head.time, head.beat));
                 break;
             }
         }
         objects.forEach(note => {
-            this.children.push(new NoteNode(note.lane, note.time));
+            this.children.push(new NoteNode(note.lane, note.time, head.beat));
         });
         switch(tail.type) {
             case "NOTE_SKILL": {
-                this.children.push(new NoteSkill(tail.lane, tail.time));
+                this.children.push(new NoteSkill(tail.lane, tail.time, tail.beat));
                 break;
             }
             case "NOTE_FLICK": {
-                this.children.push(new NoteFlick(tail.lane, tail.time));
+                this.children.push(new NoteFlick(tail.lane, tail.time, tail.beat));
                 break;
             }
             default: {
-                this.children.push(new NoteLongHead(tail.lane, tail.time));
+                this.children.push(new NoteLongHead(tail.lane, tail.time, tail.beat));
                 break;
             }
         }
 
         this.startTime = head.time;
         this.endTime = tail.time;
+        this.startBeat = head.beat;
+        this.endBeat = tail.beat;
     }
 
     isVisible(curTime, apprTime) {

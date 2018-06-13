@@ -34,11 +34,11 @@ var maxCombo = 0;
 $(document).ready(function() {
     game = new Game();
 
-    PLAYFIELD_BASE_X = game.width / 2;
-    PLAYFIELD_BASE_Y = 0;
-    PLAYFIELD_LANE_WIDTH = 55;
+    PLAYFIELD_LANE_WIDTH = 45;
     PLAYFIELD_LANE_HEIGHT = game.height;
-    PLAYFIELD_LANE_JUDGEMENT = 840;
+    PLAYFIELD_LANE_JUDGEMENT = game.height * 0.8;
+    PLAYFIELD_BASE_X = (game.width / 2) - ((PLAYFIELD_LANE_WIDTH * 7) / 2);
+    PLAYFIELD_BASE_Y = 0;
 
     if (CHART_DIFF && CHART_ID) {
         CHART_DIFF = CHART_DIFF.toLowerCase();
@@ -47,8 +47,6 @@ $(document).ready(function() {
 
     var loading = game.addState("load");
     loading.load = () => {
-        store.addQueue("assets/textures/live.png");
-        store.addQueue(`assets/textures/diff_${CHART_DIFF}.png`);
         store.addQueue("assets/textures/note_normal.png");
         store.addQueue("assets/textures/note_normal_alt.png");
         store.addQueue("assets/textures/note_skill.png");
@@ -157,12 +155,15 @@ $(document).ready(function() {
         }
 
         beat = (60000 / beatmap.bpm) / 1000;
-        document.title += `: ${beatmap.artist} - ${beatmap.title}`;
+        document.title += `: ${beatmap.artist} - ${beatmap.title} [${CHART_DIFF}]`;
     }
 
     live.update = (dt) => {
         curTime = beatmap.music.currentTime;
         if (!beatmap.music.paused) {
+            // Player
+            $(".player.time").text(_playerFormatTime(curTime));
+            $(".player.seek").val(Math.floor((100 / beatmap.music.duration) * curTime));
             // Hit Detection
             for (var i = 0; i < beatmap.objects.length; i++) {
                 var note = beatmap.objects[i];
@@ -196,14 +197,10 @@ $(document).ready(function() {
         }
         lastTime = curTime;
         // Multi BPM
-        beat = (60000 / beatmap.getCurrentBPM(curTime)) / 1000;
+        beat = (60000 / beatmap.getCurrentBPM(curTime)) / 1000;       
     }
 
     live.draw = (ctx) => {
-        // Background
-        ctx.drawImage(store.cache.live, 0, 0, store.cache.live.width, store.cache.live.height,
-            0, 0, game.width, game.height);
-
         Playfield.drawObjectPlayArea(ctx);
 
         // Playfield Notes
@@ -220,6 +217,7 @@ $(document).ready(function() {
         ctx.restore();
 
         // UI Debug
+        /*
         ctx.fillStyle = "#FFFFFF";
         ctx.font = "bold 16px Arial";
         ctx.fillText(`Controls:`, 60, 420);
@@ -230,7 +228,8 @@ $(document).ready(function() {
         ctx.fillText(`Spacebar: Pause/Play`, 80, 520);
 
         Playfield.drawUIMusicInfo(ctx);
-        //Playfield.drawUIMusicController(ctx);
+        Playfield.drawUIMusicController(ctx);
+        */
     }
 });
 
@@ -251,10 +250,7 @@ $(document).keydown(function(e) {
             beatmap.music.currentTime -= beat / gridLevel;
         }
         if (key == 32) {
-            if (beatmap.music.paused)
-                beatmap.music.play();
-            else
-                beatmap.music.pause();
+            playerPlayPause();
         }
     }
 });
@@ -286,3 +282,10 @@ $(document).on("copy", function(e) {
     var clipboard = e.originalEvent.clipboardData;
     clipboard.setData("text/plain", _playerFormatTime(beatmap.music.currentTime));
 });
+
+function playerPlayPause() {
+    if (beatmap.music.paused)
+        beatmap.music.play();
+    else
+        beatmap.music.pause();
+}

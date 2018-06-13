@@ -2,12 +2,19 @@ function _parseBeatmap(data) {
     var notes = [];
     var timing = [];
 
+    var inSlide = {
+        A: false,
+        B: false
+    };
+
+    var slides = {
+        A: [],
+        B: []
+    };
+
     timing.push(new TimingPoint("BPM", 0, 0, data.metadata.bpm));
 
     var chart = data.objects;
-    chart.forEach((object, index) => {
-        object.index = index;
-    });
 
     chart.forEach((object, index) => {
         if (object.type === "Object") {
@@ -33,24 +40,69 @@ function _parseBeatmap(data) {
                 switch(object.effect) {
                     case "SlideStart_A":
                     case "Slide_A": {
-                        var nodes = _makeSlide(chart, object, "A");
-                        //var parts = nodes.map(part => part.index);
-                        //chart = chart.filter(items => !parts.includes(items.index));
-                        notes.push(new NoteLong(nodes));
+                        if (!inSlide.A)
+                            inSlide.A = true;
+                        var type = (object.type === "Skill") ? "NOTE_SKILL" : "NOTE_SINGLE";
+                        slides.A.push({lane: object.lane, time: object.timing, type: type, beat: object.beat});
                         break;
                     }
                     case "SlideStart_B":
                     case "Slide_B": {
-                        var nodes = _makeSlide(chart, object, "B");
-                        //var parts = nodes.map(part => part.index);
-                        //chart = chart.filter(items => !parts.includes(items.index));
-                        notes.push(new NoteLong(nodes));
+                        if (!inSlide.B)
+                            inSlide.B = true;
+                        var type = (object.type === "Skill") ? "NOTE_SKILL" : "NOTE_SINGLE";
+                        slides.B.push({lane: object.lane, time: object.timing, type: type, beat: object.beat});
+                        break;
+                    }
+                    case "SlideEnd_A": {
+                        if (inSlide.A) {
+                            slides.A.push({lane: object.lane, time: object.timing, type: "NOTE_SINGLE", beat: object.beat});
+                            notes.push(new NoteLong(slides.A));
+                            slides.A = [];
+                            inSlide.A = false;
+                        }
+                        break;
+                    }
+                    case "SlideEnd_B": {
+                        if (inSlide.B) {
+                            slides.B.push({lane: object.lane, time: object.timing, type: "NOTE_SINGLE", beat: object.beat});
+                            notes.push(new NoteLong(slides.B));
+                            slides.B = [];
+                            inSlide.B = false;
+                        }
+                        break;
+                    }
+                    case "SlideEndFlick_A": {
+                        if (inSlide.A) {
+                            slides.A.push({lane: object.lane, time: object.timing, type: "NOTE_FLICK", beat: object.beat});
+                            notes.push(new NoteLong(slides.A));
+                            slides.A = [];
+                            inSlide.A = false;
+                        }
+                        break;
+                    }
+                    case "SlideEndFlick_B": {
+                        if (inSlide.B) {
+                            slides.B.push({lane: object.lane, time: object.timing, type: "NOTE_FLICK", beat: object.beat});
+                            notes.push(new NoteLong(slides.B));
+                            slides.B = [];
+                            inSlide.B = false;
+                        }
                         break;
                     }
                 }
             }
             else if (object.property === "LongStart") {
-                notes.push(new NoteLong(_makeLong(chart, object)));
+                var tail;
+                for (var i = index; i < chart.length; i++) {
+                    tail = chart[i];
+                    if (tail.property === "LongEnd" && tail.lane === object.lane)
+                        break;
+                }
+                notes.push(new NoteLong([
+                    {lane: object.lane, time: object.timing, type: "NOTE_SINGLE", beat: object.beat},
+                    {lane: tail.lane, time: tail.timing, type: "NOTE_SINGLE", beat: tail.beat}
+                ]));
             }
         }
         else if (object.type === "System") {
@@ -80,51 +132,4 @@ function _parseBeatmap(data) {
     });
 
     return [timing, notes];
-}
-
-function _makeLong(chart, head) {
-    for (var i = head.index; i < chart.length; i++) {
-        var tail = chart[i];
-        if (tail.property === "LongEnd" && tail.lane === head.lane)
-            break;  
-    }
-    var nodes = [
-        {lane: head.lane, time: head.timing},
-        {lane: tail.lane, time: tail.timing}
-    ];
-    switch(head.effect) {
-        case "Single": {
-            nodes[0].type = "NOTE_SINGLE";
-            break;
-        }
-        case "Skill": {
-            nodes[0].type = "NOTE_SKILL";
-            break;
-        }
-    };
-    switch(tail.effect) {
-        case "Single": {
-            nodes[1].type = "NOTE_SINGLE";
-            break;
-        }
-        case "Flick": {
-            nodes[1].type = "NOTE_FLICK";
-            break;
-        }
-    };
-    return nodes;
-}
-
-function _makeSlide(chart, head, group) {
-    var nodes = [];
-    for (var i = head.index; i < chart.length; i++) {
-        var node = chart[i];
-        if (node.effect == "Slide_" + group || node.effect == "SlideEnd_" + group || node.effect == "SlideStart_" + group)
-            nodes.push({lane: node.lane, time: node.time, type: "NOTE_SINGLE"});
-        if (node.effect == "SlideEndFlick_" + group)
-            nodes.push({lane: node.lane, time: node.time, type: "NOTE_FLICK"});
-        if (node.effect == "SlideEnd_" + group || node.effect == "SlideEndFlick_" + group)
-            break;
-    }
-    return nodes;
 }
