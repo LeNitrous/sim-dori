@@ -1,5 +1,5 @@
 var data = {};
-var region = "en";
+var region = "jp";
 var preview = {};
 var nowPlaying = {
     id: undefined,
