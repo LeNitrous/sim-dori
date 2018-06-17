@@ -1,5 +1,5 @@
 var data = {};
-var region = "jp";
+var region = "en";
 var preview = {};
 var nowPlaying = {
     id: undefined,
@@ -143,6 +143,7 @@ function applySortAndFilter(data) {
 }
 
 function generate(data) {
+    var now = new Date();
     $(".songs").empty();
     data.forEach(music => {
         var desc = (music.description != undefined) ? music.description : "";
@@ -164,10 +165,7 @@ function generate(data) {
                                         <div class="col-xs">
                                             <div class="songSelect title">${music.title}</div>
                                         </div>
-                                        <div class="col-xs end-xs">
-                                            <a href="https://res.bangdream.ga/assets/sound/${music.bgmId}.mp3" download="${music.title} (Game Size).mp3">
-                                                <i class="fa fa-download" id="download"></i>
-                                            </a>
+                                        <div class="col-xs end-xs" id="icon-tray${music.musicId}"">     
                                         </div>
                                     </div>
                                     <div class="row">
@@ -209,5 +207,29 @@ function generate(data) {
             </div>
         `;
         $(".songs").append(data);
+        if (music.publishedAt > now) {
+            $(`#icon-tray${music.musicId}`).append(`<i class="fa fa-clock-o" id="icon" title="Releases on ${formatDate(new Date(parseInt(music.publishedAt)))}"></i>`);
+        }
+        $(`#icon-tray${music.musicId}`).append(`
+            <a href="https://res.bangdream.ga/assets/sound/${music.bgmId}.mp3" download="${music.title} (Game Size).mp3">
+                <i class="fa fa-download" id="icon"></i>
+            </a>
+        `);
     });
 }
+
+function formatDate(date) {
+    var monthNames = [
+      "January", "February", "March",
+      "April", "May", "June", "July",
+      "August", "September", "October",
+      "November", "December"
+    ];
+  
+    var day = date.getDate();
+    var monthIndex = date.getMonth();
+    var year = date.getFullYear();
+  
+    return day + ' ' + monthNames[monthIndex] + ' ' + year;
+    return `${monthNames[monthIndex]} ${day}, ${year}`;
+  }
