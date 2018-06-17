@@ -215,6 +215,11 @@ function generate(data) {
                 <i class="fa fa-download" id="icon"></i>
             </a>
         `);
+        $(`#icon-tray${music.musicId}`).append(`
+            <a onclick="javascript:_createOsuMappableZip(${music.musicId})">
+                <i class="fa fa-download" id="icon" style="color: #f1d2fb;"></i>
+            </a>
+        `);
     });
 }
 
