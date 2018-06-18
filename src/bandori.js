@@ -20,8 +20,6 @@ var PLAYER_FEVER_READY = 0;
 var PLAYER_FEVER_START = 0;
 var PLAYER_FEVER_LENGTH = 0;
 
-var BUTTONS = {};
-
 var CHART_MIRROR = (_getURLParameter("mirror") === "true") || false;
 var CHART_RHYTHM = (_getURLParameter("rhythm") === "true") || true;
 var CHART_CUSTOM = _getURLParameter("custom");
@@ -30,8 +28,8 @@ var CHART_DIFF = _getURLParameter("diff");
 var CHART_ID = _getURLParameter("id");
 
 var approachTime = 1.5;
-var gridLevel = 1;
-var hitTime = 0.05;
+var gridLevel = 4;
+var hitTime = 0.01;
 var maxCombo = 0;
 
 $(document).ready(function() {
@@ -74,51 +72,14 @@ $(document).ready(function() {
         ).done(function(chart, meta) {
             beatmap = new Beatmap(meta[0], chart[0]);
 
-            beatmap.objects.forEach(note => {
-                if (note.type != "NOTE_LONG") {
-                    maxCombo++;
-                }
-                else {
-                    note.children.forEach(child => {
-                        maxCombo++;
-                    });
-                }
-            });
-
             beatmap.music.addEventListener("canplaythrough", function() {
+                $(".overlay").hide();
                 game.setState("live");
             }, false);
+        }).catch(function(error) {
+            $(".spinner").attr("class", "fa fa-times spinner");
+            alert("An error has occured.");
         });
-
-        /*
-        if (!CHART_ID && !CHART_DIFF) {
-            $.when(
-                $.getJSON(`https://api.bangdream.ga/v1/jp/music/chart/${CHART_ID}/${CHART_DIFF}`),
-                $.getJSON(`https://api.bangdream.ga/v1/jp/music/${CHART_ID}`)
-            ).done(function(chart, meta) {
-                beatmap = new Beatmap(meta[0], chart[0]);
-
-                beatmap.objects.forEach(note => {
-                    if (note.type != "NOTE_LONG") {
-                        maxCombo++;
-                    }
-                    else {
-                        note.children.forEach(child => {
-                            maxCombo++;
-                        });
-                    }
-                });
-
-                beatmap.music.addEventListener("canplaythrough", function() {
-                    jacket = new Image(60, 60);
-                    jacket.onload = function() {
-                        //game.setState("live");
-                    }
-                jacket.src = beatmap.jacket;
-                }, false);
-            });
-        }
-        */
     }
 
     loading.update = (dt) => {
@@ -166,9 +127,6 @@ $(document).ready(function() {
     live.update = (dt) => {
         curTime = offset + beatmap.music.currentTime;
         if (!beatmap.music.paused) {
-            // Player
-            $(".player.time").text(_playerFormatTime(curTime));
-            $(".player.seek").val(Math.floor((100 / beatmap.music.duration) * curTime));
             // Hit Detection
             for (var i = 0; i < beatmap.objects.length; i++) {
                 var note = beatmap.objects[i];
@@ -202,7 +160,7 @@ $(document).ready(function() {
         }
         lastTime = curTime;
         // Multi BPM
-        beat = (60000 / beatmap.getTimingPoint(curTime).value) / 1000;       
+        beat = 60 / beatmap.getTimingPoint(curTime).value;
     }
 
     live.draw = (ctx) => {

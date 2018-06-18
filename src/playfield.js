@@ -80,7 +80,7 @@ Playfield.drawObjectPlayArea = (ctx) => {
         ctx.fillRect(PLAYFIELD_BASE_X + (PLAYFIELD_LANE_WIDTH * i), PLAYFIELD_BASE_Y,
             PLAYFIELD_LANE_WIDTH, PLAYFIELD_LANE_HEIGHT);
     }
-    ctx.strokeStyle = "#172e30";
+    ctx.strokeStyle = "#FFFFFF";
     ctx.lineWidth = 1;
     for (var i = 1; i <= 6; i++) {
         ctx.beginPath();
@@ -102,14 +102,32 @@ Playfield.drawObjectPlayArea = (ctx) => {
 
     // Playfield Crochet
     for (var i = 0; i * (beat / gridLevel) < beatmap.music.duration; i++) {
-        var bar = i * (beat / gridLevel);
+        var bar = (i * (beat / gridLevel)) + beatmap.getTimingPoint(curTime).time
         var Y = (PLAYFIELD_BASE_Y + (PLAYFIELD_LANE_JUDGEMENT - (PLAYFIELD_LANE_WIDTH / 4))) * (1 - (bar - curTime) / approachTime);
         Y += PLAYFIELD_LANE_WIDTH / 4;
         if (!(i % (4 * gridLevel))) {
             ctx.strokeStyle = "#FFFFFF";
         }
+        else if (!((i + (gridLevel / 2)) % gridLevel)) {
+            ctx.strokeStyle = "#f44242";
+        }
+        else if (!((i + (gridLevel / 3)) % gridLevel) || !((i - (gridLevel / 3)) % gridLevel)) {
+            ctx.strokeStyle = "#be41f4";
+        }
+        else if (!((i + (gridLevel / 4)) % gridLevel) || !((i - (gridLevel / 4)) % gridLevel)) {
+            ctx.strokeStyle = "#4195f4";
+        }
+        else if (!((i + (gridLevel / 6)) % gridLevel) || !((i - (gridLevel / 6)) % gridLevel)) {
+            ctx.strokeStyle = "#be41f4";
+        }
+        else if (!((i + (gridLevel / 8)) % gridLevel) || !((i - (gridLevel / 8)) % gridLevel)) {
+            ctx.strokeStyle = "#f4ca41";
+        }
+        else if (!((i + (gridLevel / 16)) % gridLevel) || !((i - (gridLevel / 16)) % gridLevel)) {
+            ctx.strokeStyle = "#444444";
+        }
         else {
-            ctx.strokeStyle = "#172e30";
+            ctx.strokeStyle = "#FFFFFF";
         }
         if (Y < PLAYFIELD_LANE_HEIGHT) {
             ctx.beginPath();
