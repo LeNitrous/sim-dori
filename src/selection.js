@@ -1,5 +1,5 @@
 var data = {};
-var region = "jp";
+var region =  _getURLParameter("region") || "jp";
 var preview = {};
 var nowPlaying = {
     id: undefined,
@@ -9,10 +9,10 @@ var nowPlaying = {
 
 $(document).ready(function() {
     $.when(
-        $.getJSON("https://api.bangdream.ga/v1/jp/music"),
-        $.getJSON("https://api.bangdream.ga/v1/en/music"),
-        $.getJSON("https://api.bangdream.ga/v1/kr/music"),
-        $.getJSON("https://api.bangdream.ga/v1/tw/music")
+        $.getJSON("https://api.bandori.ga/v1/jp/music"),
+        $.getJSON("https://api.bandori.ga/v1/en/music"),
+        $.getJSON("https://api.bandori.ga/v1/kr/music"),
+        $.getJSON("https://api.bandori.ga/v1/tw/music")
     ).done(function(jp, en, kr, tw) {
         data.jp = jp[0].data,
         data.en = en[0].data,
@@ -40,7 +40,7 @@ $(document).ready(function() {
     $(".songs").on("click", ".songSelect.jacket.overlay", function() {
         var id = $(this).parents()[2].id.padStart(3, "0");
         if (preview[id] == undefined) {
-            preview[id] = new Audio(`https://res.bangdream.ga/assets/sound/bgm${id}_chorus.mp3`);
+            preview[id] = new Audio(`https://res.bandori.ga/assets/sound/bgm${id}_chorus.mp3`);
         }
         if (nowPlaying.id) {
             if (nowPlaying.audio.paused) {
@@ -77,6 +77,12 @@ $(document).ready(function() {
             $(nowPlaying.button).children().attr("class", "fa fa-stop");
             nowPlaying.audio = preview[id];
             nowPlaying.audio.play();
+            nowPlaying.audio.addEventListener("loadstart", function() {
+                $(nowPlaying.button).children().attr("class", "fa fa-spinner fa-spin");
+            });
+            nowPlaying.audio.addEventListener("canplaythrough", function() {
+                $(nowPlaying.button).children().attr("class", "fa fa-stop");
+            });
             nowPlaying.audio.addEventListener("ended", function() {
                 nowPlaying.audio.pause();
                 nowPlaying.audio.currentTime = 0;
@@ -154,7 +160,7 @@ function generate(data) {
                     <div class="songSelect box" id="${music.musicId}">
                         <div class="row start-xs">
                             <div class="songSelect jacket">
-                                <div class="songSelect jacket image" style="background-image: url('https://res.bangdream.ga/assets/musicjacket/${music.jacketImage}_jacket.png');"></div>
+                                <div class="songSelect jacket image" style="background-image: url('https://res.bandori.ga/assets/musicjacket/${music.jacketImage}_jacket.png');"></div>
                                 <div class="songSelect jacket overlay">
                                     <i class="fa fa-play"></i>
                                 </div>
@@ -211,14 +217,10 @@ function generate(data) {
             $(`#icon-tray${music.musicId}`).append(`<i class="fa fa-clock-o" id="icon" title="Releases on ${formatDate(new Date(parseInt(music.publishedAt)))}"></i>`);
         }
         $(`#icon-tray${music.musicId}`).append(`
-            <a href="https://res.bangdream.ga/assets/sound/${music.bgmId}.mp3" download="${music.title} (Game Size).mp3">
-                <i class="fa fa-download" id="icon"></i>
-            </a>
+            <a href="https://res.bangdream.ga/assets/sound/${music.bgmId}.mp3" download="${music.title} (Game Size).mp3"><i class="fa fa-download" id="icon"></i></a>
         `);
         $(`#icon-tray${music.musicId}`).append(`
-            <a onclick="javascript:_createOsuMappableZip(${music.musicId})">
-                <i class="fa fa-download" id="icon" style="color: #f1d2fb;"></i>
-            </a>
+            <a onclick="javascript:_createOsuMappableZip(${music.musicId})"><i class="fa fa-download" id="icon" style="color: #f1d2fb;"></i></a>
         `);
     });
 }
@@ -234,7 +236,12 @@ function formatDate(date) {
     var day = date.getDate();
     var monthIndex = date.getMonth();
     var year = date.getFullYear();
-  
-    return day + ' ' + monthNames[monthIndex] + ' ' + year;
-    return `${monthNames[monthIndex]} ${day}, ${year}`;
-  }
+    var hour = date.getHours();
+    var min = date.getMinutes();
+    var meridian = (hour >= 12) ? "PM" : "AM";
+    hour %= 12;
+    hour = (hour) ? hour : 12;
+    min = (min < 10) ? "0" + min : min;
+
+    return `${monthNames[monthIndex]} ${day}, ${year}, ${hour}:${min}${meridian} (${Intl.DateTimeFormat().resolvedOptions().timeZone})`;
+}

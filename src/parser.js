@@ -135,3 +135,43 @@ function _parseBeatmap(data) {
 
     return [timing, notes];
 }
+
+function _toBMSChart(path, id) {
+    var out = [];
+    out.push("\n*---------------------- HEADER FIELD\n");
+    out.push("#PLAYER 1");
+    out.push("#GENRE");
+    out.push("#TITLE");
+    out.push("#ARTIST");
+    out.push(`#BPM ${placeholder}`);
+    out.push("#PLAYLEVEL 1");
+    out.push("#RANK 3");
+    out.push("#STAGEFILE");
+    out.push("\n");
+    out.push(`#WAV01 bgm${id.padStart(3, '0')}.wav`);
+    out.push("#WAV03 bd.wav");
+    out.push("#WAV04 skill.wav");
+    out.push("#WAV05 slide_a.wav");
+    out.push("#WAV06 slide_end_a.wav");
+    out.push("#WAV07 slide_b.wav");
+    out.push("#WAV08 slide_end_b.wav");
+    out.push("#WAV0A flick.wav");
+    out.push("#WAV0B cmd_fever_ready.wav");
+    out.push("#WAV0C cmd_fever_start.wav");
+    out.push("#WAV0D cmd_fever_end.wav");
+    out.push("#WAV0E fever_note.wav");
+    out.push("#WAV0F fever_note_flick.wav");
+    out.push("#WAV0G fever_note_slide_a.wav");
+    out.push("#WAV0H fever_note_slide_end_a.wav");
+    out.push("#WAV0I fever_note_slide_b.wav");
+    out.push("#WAV0J fever_note_slide_end_b.wav");
+    out.push("\n\n\n\n\n\n\n\n");
+    out.push("*---------------------- MAIN DATA FIELD");
+    out.push("\n");
+    out.push(_parseOsuToBMSData(placeholder));
+    return out.join("\n");
+}
+
+function _parseOsuToBMSData(objects) {
+
+}

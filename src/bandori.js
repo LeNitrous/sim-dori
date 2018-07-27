@@ -4,7 +4,6 @@ var controls;
 
 var beatmap, game, beat;
 var curTime, lastTime;
-var offset = 0;
 
 var PLAYFIELD_BASE_X;
 var PLAYFIELD_BASE_Y;
@@ -28,9 +27,18 @@ var CHART_DIFF = _getURLParameter("diff");
 var CHART_ID = _getURLParameter("id");
 
 var approachTime = 1.5;
+var musicVolume = 70;
+var effectsVolume = 70;
+var noteSize = 100;
+var offset = 0;
+
 var gridLevel = 4;
-var hitTime = 0.01;
+var hitTime = 0.1;
 var maxCombo = 0;
+
+var drawMode = 0;   // 0 - 2d with beat divisor
+                    // 1 - 2d
+                    // 2 - 3d
 
 $(document).ready(function() {
     game = new Game();
@@ -54,21 +62,22 @@ $(document).ready(function() {
 
     var loading = game.addState("load");
     loading.load = () => {
-        store.addQueue("assets/textures/note_normal.png");
-        store.addQueue("assets/textures/note_normal_alt.png");
-        store.addQueue("assets/textures/note_skill.png");
-        store.addQueue("assets/textures/note_flick.png");
-        store.addQueue("assets/textures/note_long_head.png");
+        store.addQueue(`assets/textures/note_normal.png`);
+        store.addQueue(`assets/textures/note_normal_alt.png`);
+        store.addQueue(`assets/textures/note_skill.png`);
+        store.addQueue(`assets/textures/note_flick.png`);
+        store.addQueue(`assets/textures/note_long_head.png`);
         store.addQueue("assets/textures/note_long_body.png");
         store.addQueue("assets/textures/note_long_mid.png");
         store.addQueue("assets/sounds/note_hit.wav");
         store.addQueue("assets/sounds/note_swipe.wav");
         store.addQueue("assets/sounds/note_hold.wav");
+        store.addQueue("assets/sounds/note_hit_skill.wav");
         store.downloadAll();
 
         $.when(
-            $.getJSON(`https://api.bangdream.ga/v1/jp/music/chart/${CHART_ID}/${CHART_DIFF}`),
-            $.getJSON(`https://api.bangdream.ga/v1/jp/music/${CHART_ID}`)
+            $.getJSON(`https://api.bandori.ga/v1/jp/music/chart/${CHART_ID}/${CHART_DIFF}`),
+            $.getJSON(`https://api.bandori.ga/v1/jp/music/${CHART_ID}`)
         ).done(function(chart, meta) {
             beatmap = new Beatmap(meta[0], chart[0]);
 
@@ -164,20 +173,42 @@ $(document).ready(function() {
     }
 
     live.draw = (ctx) => {
-        Playfield.drawObjectPlayArea(ctx);
+        switch(drawMode) {
+            case 0: {
+                Playfield.drawObjectPlayArea(ctx);
 
-        // Playfield Notes
-        ctx.save();
-        for (var i = 0; i < beatmap.objects.length; i++) {  
-            var note = beatmap.objects[i];
-            if (note.isVisible(curTime, approachTime) && note.type != "NOTE_LONG") {
-                Playfield.drawObjectNote(ctx, note);
+                // Playfield Notes
+                ctx.save();
+                for (var i = 0; i < beatmap.objects.length; i++) {  
+                    var note = beatmap.objects[i];
+                    if (note.isVisible(curTime, approachTime) && note.type != "NOTE_LONG") {
+                        Playfield.drawObjectNote(ctx, note);
+                    }
+                    else if (note.isVisible(curTime, approachTime) && note.type == "NOTE_LONG") {
+                        Playfield.drawObjectNoteLong(ctx, note);
+                    }
+                }
+                ctx.restore();
+                break;
             }
-            else if (note.isVisible(curTime, approachTime) && note.type == "NOTE_LONG") {
-                Playfield.drawObjectNoteLong(ctx, note);
+            case 2: {
+                Playfield.drawObjectPlayArea3D(game, ctx);
+
+                // Playfield Notes
+                ctx.save();
+                for (var i = 0; i < beatmap.objects.length; i++) {  
+                    var note = beatmap.objects[i];
+                    if (note.isVisible(curTime, approachTime) && note.type != "NOTE_LONG") {
+                        Playfield.drawObjectNote3D(ctx, note);
+                    }
+                    else if (note.isVisible(curTime, approachTime) && note.type == "NOTE_LONG") {
+                        //Playfield.drawObjectNoteLong3D(ctx, note);
+                    }
+                }
+                ctx.restore();
+                break;
             }
         }
-        ctx.restore();
     }
 
     controls.on("panup pandown pinchin pinchout doubletap", function(e) {

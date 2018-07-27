@@ -201,3 +201,32 @@ Playfield.drawObjectNoteLong = (ctx, note) => {
         }
     }
 }
+
+var PLAYFIELD_3D_BEGINWIDTH = 0.14;
+var PLAYFIELD_3D_ENDWIDTH = 1.54;
+var PLAYFIELD_3D_TRACKTOP = 0.06;
+var PLAYFIELD_3D_SPAWNPOS = 0.08;
+var PLAYFIELD_3D_JUDGEPOS = 0.86;
+var PLAYFIELD_3D_SKEWING = (PLAYFIELD_3D_ENDWIDTH - PLAYFIELD_3D_BEGINWIDTH) / 7 / (PLAYFIELD_3D_JUDGEPOS - PLAYFIELD_3D_TRACKTOP);
+var PLAYFIELD_3D_SPAWNWIDTH = PLAYFIELD_3D_BEGINWIDTH + (PLAYFIELD_3D_SPAWNPOS - PLAYFIELD_3D_TRACKTOP) / (PLAYFIELD_3D_JUDGEPOS - PLAYFIELD_3D_TRACKTOP) * (PLAYFIELD_3D_ENDWIDTH - PLAYFIELD_3D_BEGINWIDTH);
+var PLAYFIELD_3D_LANEWIDTH = PLAYFIELD_3D_ENDWIDTH / 7;
+
+Playfield.drawObjectPlayArea3D = (game, ctx) => {
+
+}
+
+Playfield.drawObjectNote3D = (ctx, note) => {
+    var X = 0.8 * game.height + (PLAYFIELD_3D_LANEWIDTH - PLAYFIELD_3D_SKEWING * PLAYFIELD_3D_JUDGEPOS) * game.height * (note.lane - 6 / 2);
+    var Y = (PLAYFIELD_3D_SPAWNPOS + (PLAYFIELD_3D_JUDGEPOS - PLAYFIELD_3D_SPAWNPOS) * (1 - (note.time - curTime) / approachTime)) / PLAYFIELD_3D_ENDWIDTH;
+    var SCALE = PLAYFIELD_3D_SKEWING * (note.lane - 6 / 2);
+
+    var image = store.cache[note.texture];
+    var divisor = note.beat.toString().split(".")[1];
+    if (!(!divisor || divisor == "5") && note.type == "NOTE_SINGLE" && CHART_RHYTHM)
+        image = store.cache["note_normal_alt"];
+    ctx.drawImage(image, X, Y, SCALE, SCALE / 2);
+}
+
+Playfield.drawObjectNoteLong3D = (ctx, note) => {
+
+}

@@ -104,6 +104,7 @@ class NoteSkill extends Note {
         super(lane, time, beat);
         this.type = "NOTE_SKILL";
         this.texture = "note_skill";
+        this.hitSound = store.cache.note_hit_skill.cloneNode(false);
     }
 }
 
@@ -122,8 +123,8 @@ class Beatmap {
         this.id = meta.musicId,
 
         this.jacket = new Image(400, 400);
-        this.jacket.src = `https://res.bangdream.ga/assets/musicjacket/` + meta.jacketImage + '_jacket.png';
-        this.music = new Audio(`https://res.bangdream.ga/assets/sound/` + meta.bgmId + '.mp3');
+        this.jacket.src = `https://res.bandori.ga/assets/musicjacket/` + meta.jacketImage + '_jacket.png';
+        this.music = new Audio(`https://res.bandori.ga/assets/sound/` + meta.bgmId + '.mp3');
 
         this.description = meta.description,
         this.arranger = meta.arranger,
