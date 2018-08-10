@@ -36,12 +36,8 @@ var gridLevel = 4;
 var hitTime = 0.1;
 var maxCombo = 0;
 
-var drawMode = 0;   // 0 - 2d with beat divisor
-                    // 1 - 2d
-                    // 2 - 3d
-
 $(document).ready(function() {
-    game = new Game();
+    game = new Game("#canvas");
     controls = new Hammer(document.getElementById("canvas"));
     controls.get("pan").set({ direction: Hammer.DIRECTION_ALL });
     controls.get("pinch").set({ enable: true });
@@ -134,6 +130,9 @@ $(document).ready(function() {
     }
 
     live.update = (dt) => {
+        PLAYFIELD_LANE_HEIGHT = game.height;
+        PLAYFIELD_LANE_JUDGEMENT = game.height * 0.8;
+        PLAYFIELD_BASE_X = (game.width / 2) - ((PLAYFIELD_LANE_WIDTH * 7) / 2);
         curTime = offset + beatmap.music.currentTime;
         if (!beatmap.music.paused) {
             // Hit Detection
@@ -173,42 +172,20 @@ $(document).ready(function() {
     }
 
     live.draw = (ctx) => {
-        switch(drawMode) {
-            case 0: {
-                Playfield.drawObjectPlayArea(ctx);
+        Playfield.drawObjectPlayArea(ctx);
 
-                // Playfield Notes
-                ctx.save();
-                for (var i = 0; i < beatmap.objects.length; i++) {  
-                    var note = beatmap.objects[i];
-                    if (note.isVisible(curTime, approachTime) && note.type != "NOTE_LONG") {
-                        Playfield.drawObjectNote(ctx, note);
-                    }
-                    else if (note.isVisible(curTime, approachTime) && note.type == "NOTE_LONG") {
-                        Playfield.drawObjectNoteLong(ctx, note);
-                    }
-                }
-                ctx.restore();
-                break;
+        // Playfield Notes
+        ctx.save();
+        for (var i = 0; i < beatmap.objects.length; i++) {  
+            var note = beatmap.objects[i];
+            if (note.isVisible(curTime, approachTime) && note.type != "NOTE_LONG") {
+                Playfield.drawObjectNote(ctx, note);
             }
-            case 2: {
-                Playfield.drawObjectPlayArea3D(game, ctx);
-
-                // Playfield Notes
-                ctx.save();
-                for (var i = 0; i < beatmap.objects.length; i++) {  
-                    var note = beatmap.objects[i];
-                    if (note.isVisible(curTime, approachTime) && note.type != "NOTE_LONG") {
-                        Playfield.drawObjectNote3D(ctx, note);
-                    }
-                    else if (note.isVisible(curTime, approachTime) && note.type == "NOTE_LONG") {
-                        //Playfield.drawObjectNoteLong3D(ctx, note);
-                    }
-                }
-                ctx.restore();
-                break;
+            else if (note.isVisible(curTime, approachTime) && note.type == "NOTE_LONG") {
+                Playfield.drawObjectNoteLong(ctx, note);
             }
         }
+        ctx.restore();
     }
 
     controls.on("panup pandown pinchin pinchout doubletap", function(e) {

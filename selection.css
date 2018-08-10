@@ -7,6 +7,36 @@ html, body {
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
+    margin: 0;
+}
+
+.filter {
+    border-right: 1px solid white;
+    -webkit-box-shadow: 5px 0px 14px 1px rgba(0,0,0,0.42);
+    -moz-box-shadow: 5px 0px 14px 1px rgba(0,0,0,0.42);
+    box-shadow: 5px 0px 14px 1px rgba(0,0,0,0.42);
+    height: 100%;
+    padding: 10px;
+}
+
+.follow {
+    position: fixed;
+    width: 15%;
+}
+
+.item > span {
+    color: gray;
+    vertical-align: top;
+    line-height: 1.2em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    float: left;
+}
+
+.item > select {
+    width: 100%;
+    height: 45px;
+    margin-bottom: 20px;
 }
 
 .songSelect.box {

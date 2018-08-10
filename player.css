@@ -36,3 +36,12 @@ canvas {
     position: relative;
     color: #ff99ea;
 }
+
+#container {
+    width: 100%;
+    text-align: center;
+}
+
+#canvas {
+    display: inline;
+}

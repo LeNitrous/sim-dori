@@ -105,8 +105,10 @@ $(document).ready(function() {
 });
 
 function applySortAndFilter(data) {
-    nowPlaying.audio.pause();
-    nowPlaying.audio.currentTime = 0;
+    if (nowPlaying.audio) {
+        nowPlaying.audio.pause();
+        nowPlaying.audio.currentTime = 0;
+    }
     var tag = $(".select.tag").val();
     var sort = $(".select.sort").val();
     var band = $(".select.band").val();
@@ -155,8 +157,8 @@ function generate(data) {
         var desc = (music.description != undefined) ? music.description : "";
         var tag = (music.tag == "normal") ? "Original" : "Cover";
         var data = `
-            <div class="row center-xs">
-                <div class="col-sm-12 col-md-8 col-lg-6">
+            <div class="row">
+                <div class="col-xs-12">
                     <div class="songSelect box" id="${music.musicId}">
                         <div class="row start-xs">
                             <div class="songSelect jacket">
