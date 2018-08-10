@@ -190,7 +190,7 @@ function generate(data) {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="songSelect metadata">
+                                <div class="songSelect metadata" id="diffs${music.musicId}">
                                     <div class="row">
                                         <div class="col-xs">
                                             <div class="songSelect diff easy">EASY</div>
@@ -222,6 +222,9 @@ function generate(data) {
         $(`#icon-tray${music.musicId}`).append(`
             <a onclick="javascript:_createOsuMappableZip(${music.musicId})"><i class="fa fa-download" id="icon" style="color: #f1d2fb;"></i></a>
         `);
+        if (music.difficulty.length >= 5) {
+            $(`.songSelect.metadata#diffs${music.musicId} > .row`).append(`<div class="col-xs"><div class="songSelect diff special">SPECIAL</div></div>`);
+        }
     });
 }
 

@@ -86,6 +86,11 @@ html, body {
 
 .songSelect.desc {
     color: gray;
+    vertical-align: top;
+    line-height: 1.2em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    float: left;
 }
 
 .songSelect.tag {
@@ -115,6 +120,10 @@ html, body {
     border-color: #ff2a2e;
 }
 
+.songselect.diff.special {
+    border-color: purple;
+}
+
 .songSelect.diff.easy:hover {
     background-color: #3076f9;
 }
@@ -129,6 +138,10 @@ html, body {
 
 .songSelect.diff.expert:hover {
     background-color: #ff2a2e;
+}
+
+.songselect.diff.special:hover {
+    background-color: purple;
 }
 
 #icon {
