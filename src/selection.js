@@ -9,10 +9,10 @@ var nowPlaying = {
 
 $(document).ready(function() {
     $.when(
-        $.getJSON("https://api.bandori.ga/v1/jp/music"),
-        $.getJSON("https://api.bandori.ga/v1/en/music"),
-        $.getJSON("https://api.bandori.ga/v1/kr/music"),
-        $.getJSON("https://api.bandori.ga/v1/tw/music")
+        $.getJSON("https://api.bandori.ga/v1/jp/music?tag=all"),
+        $.getJSON("https://api.bandori.ga/v1/en/music?tag=all"),
+        $.getJSON("https://api.bandori.ga/v1/kr/music?tag=all"),
+        $.getJSON("https://api.bandori.ga/v1/tw/music?tag=all")
     ).done(function(jp, en, kr, tw) {
         data.jp = jp[0].data,
         data.en = en[0].data,
