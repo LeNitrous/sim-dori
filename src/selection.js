@@ -40,7 +40,7 @@ $(document).ready(function() {
     $(".songs").on("click", ".songSelect.jacket.overlay", function() {
         var id = $(this).parents()[2].id.padStart(3, "0");
         if (preview[id] == undefined) {
-            preview[id] = new Audio(`https://res.bandori.ga/assets/sound/bgm${id}_chorus.mp3`);
+            preview[id] = new Audio(`https://res.bandori.ga/assets/sound/chorus${id}_rip/bgm${id}_chorus.mp3`);
         }
         if (nowPlaying.id) {
             if (nowPlaying.audio.paused) {
@@ -162,7 +162,7 @@ function generate(data) {
                     <div class="songSelect box" id="${music.musicId}">
                         <div class="row start-xs">
                             <div class="songSelect jacket">
-                                <div class="songSelect jacket image" style="background-image: url('https://res.bandori.ga/assets/musicjacket/${music.jacketImage}_jacket.png');"></div>
+                                <div class="songSelect jacket image" style="background-image: url('https://res.bandori.ga/assets/musicjacket/${music.jacketImage}_rip/jacket.png');"></div>
                                 <div class="songSelect jacket overlay">
                                     <i class="fa fa-play"></i>
                                 </div>
